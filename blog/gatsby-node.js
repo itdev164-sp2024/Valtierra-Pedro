@@ -1,56 +1,43 @@
 /**
- * Configure your Gatsby site with this file.
+ * Implement Gatsby's Node APIs in this file.
  *
- * See: https://www.gatsbyjs.com/docs/reference/config-files/gatsby-config/
+ * See: https://www.gatsbyjs.com/docs/reference/config-files/gatsby-node/
  */
+
+const path = require('path');
 
 /**
- * @type {import('gatsby').GatsbyConfig}
+ * @type {import('gatsby').GatsbyNode['createPages']}
  */
-module.exports = {
-  siteMetadata: {
-    title: `Gatsby Blog`,
-    description: ``,
-    author: `Pedro Ivan Valtierra`,
-    siteUrl: `https://gatsbystarterdefaultsource.gatsbyjs.io/`,
-    contact: {
-      name: `Pedro Valtierra`,
-      company: `Blogs.com`,
-      address: `PO BOX 2529`
-    }
-  },
-  plugins: [
+exports.createPages = async ({ graphql, actions }) => {
+  const { createPage } = actions;
+  return new Promise((resolve, reject) => {
+    graphql(`
+      {
+        allContentfulBlogPost {
+          edges {
+            node {
+              slug
+            }
+          }
+        }
+      }
+    `).then(result => {
+      if (result.errors) {
+        reject(result.errors);
+      }
 
-    {
-resolve: `gatsby-source-contentful`,
-options: {
-spaceId: `i1o0wp4co5cl`,
-accessToken: `4G3w_wmETYxnR4YJxzTBq1hWFvMGwIVKHcgoo3wFJo8`
-    }
-  },
-    `gatsby-plugin-image`,
-    {
-      resolve: `gatsby-source-filesystem`,
-      options: {
-        name: `images`,
-        path: `${__dirname}/src/images`,
-      },
-    },
-    `gatsby-transformer-sharp`,
-    `gatsby-plugin-sharp`,
-    {
-      resolve: `gatsby-plugin-manifest`,
-      options: {
-        name: `gatsby-starter-default`,
-        short_name: `starter`,
-        start_url: `/`,
-        background_color: `#663399`,
-        // This will impact how browsers show your PWA/website
-        // https://css-tricks.com/meta-theme-color-and-trickery/
-        // theme_color: `#663399`,
-        display: `minimal-ui`,
-        icon: `src/images/gatsby-icon.png`, // This path is relative to the root of the site.
-      },
-    },
-  ],
+      result.data.allContentfulBlogPost.edges.forEach((edge) => {
+        createPage({
+          path: edge.node.slug,
+          component: require.resolve('./src/templates/blog-post.js'),
+          context: {
+            slug: edge.node.slug
+          },
+        })
+      })
+
+      resolve()
+    })
+  })
 }
