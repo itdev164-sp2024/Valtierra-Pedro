@@ -1,47 +1,64 @@
-import React from 'react'
-import { graphql, Link } from 'gatsby'
-import { StaticImage } from 'gatsby-plugin-image'
+import * as React from "react"
+import { graphql, Link } from "gatsby"
+import { GatsbyImage } from "gatsby-plugin-image"
 
-import Layout from '../components/layout'
-import Seo from '../components/seo'
+import Layout from "../components/layout"
+import Seo from "../components/seo"
+import * as styles from "../components/index.module.css"
 
-const Contact = ({ data }) => {
-  const { name, company, address } = data.site.siteMetadata.contact
-  return (
-      <Layout>
-        <Seo title="Contact Us" />
-        <h1>Contact Us</h1>
-        <p>Please send all inquiries to: </p>
-        <div>{company}</div>
-        <div>{`C/O ${name}`}</div>
-        <div>{address}</div>
-        <div style={{ maxWidth: `300px`, marginBottom: `1.45rem` }}>
-          <StaticImage 
-            src="../images/gatsby-icon.png"
-            width={300}
-            quality={95}
-            formats={["auto", "webp", "avif"]}
-            alt="A Gatsby blog"
-            style={{ marginBottom: `1.45rem`}}
-          />
-        </div>
-        <Link to="/">Home</Link>
-      </Layout>
-  )
-}
+const IndexPage = ( {data} ) => (
+  <Layout>
+    <ul className={styles.list}>
+    {
+      data.allContentfulBlogPost.edges.map(edge => (
+        <li key={edge.node.id}>
+          <Link to={edge.node.slug}>{edge.node.title}</Link>
+          <div>
+            <GatsbyImage
+              image={edge.node.heroImage.gatsbyImageData}
+            />
+          </div>
+          <div>
+            {edge.node.body.childMarkdownRemark.excerpt}
+          </div>
+        </li>
+      ))
+    }
+    </ul>
+  </Layout>
+)
 
-export default Contact
+/**
+ * Head export to define metadata for the page
+ *
+ * See: https://www.gatsbyjs.com/docs/reference/built-in-components/gatsby-head/
+ */
+export const Head = () => <Seo title="Home" />
+
+export default IndexPage
 
 export const query = graphql`
-  query {
-    site {
-      siteMetadata {
-        contact {
-          name
-          company
-          address
+{
+  allContentfulBlogPost {
+    edges {
+      node {
+        id
+        title
+        slug
+        body {
+          childMarkdownRemark {
+            excerpt
+          }
+        }
+        heroImage {
+          gatsbyImageData(
+            layout: CONSTRAINED
+            placeholder: BLURRED
+            width: 300
+          )
         }
       }
     }
   }
+}
 `
